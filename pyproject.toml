@@ -34,7 +34,7 @@ classifiers = [
 dependencies = []
 
 [project.optional-dependencies]
-parquet = ["pyarrow>=14"]
+parquet = ["pyarrow>=25.0.1"]
 dev = ["pytest>=7"]
 
 [project.urls]
