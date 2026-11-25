@@ -1,0 +1,172 @@
+{
+ "ucl": {
+  "title": "Arsenal FC vs. BV Borussia 09 Dortmund",
+  "slug": "ucl-ars-bvb-2026-11-24",
+  "active": true,
+  "closed": false,
+  "startTime": "2026-11-24T20:00:00Z",
+  "endDate": "2026-11-24T20:00:00Z",
+  "description": "In the upcoming UEFA Champions League game between Arsenal FC and BV Borussia 09 Dortmund",
+  "markets": [
+   {
+    "question": "Will Arsenal FC win on 2026-11-24?",
+    "conditionId": "0x6fe5",
+    "outcomes": "[\"Yes\", \"No\"]",
+    "clobTokenIds": "[\"48785407426510507757153118342112246219144357041577840957197752950036912721064\", \"57618757328728487225724129613008635024857069805209977624119158932000665983956\"]",
+    "sportsMarketType": "moneyline",
+    "gameStartTime": "2026-11-24 20:00:00+00",
+    "description": "In the upcoming UEFA Champions League game between Arsenal FC and BV Borussia 09 Dortmund, originally scheduled for Tuesday, November 24, 2026 at 3:00 PM ET:\nIf Arsenal FC wins, this market will resolve to \"Yes\".\nOtherwise, this market will resolve to \"No\".\nThis market refers only to the outcome within the first 90 minutes of regular play plus stoppage time."
+   },
+   {
+    "question": "Will Arsenal FC vs. BV Borussia 09 Dortmund end in a draw?",
+    "conditionId": "0x8a07",
+    "outcomes": "[\"Yes\", \"No\"]",
+    "clobTokenIds": "[\"20688966511180342262055611951364480251804278240914390942808979995947878169161\", \"23654957472345749447034407588722684124494442302399888839271406143943918825840\"]",
+    "sportsMarketType": "moneyline",
+    "gameStartTime": "2026-11-24 20:00:00+00",
+    "description": "In the upcoming UEFA Champions League game between Arsenal FC and BV Borussia 09 Dortmund, originally scheduled for Tuesday, November 24, 2026 at 3:00 PM ET:\nIf the game ends in a draw, this market will resolve to \"Yes\".\nOtherwise, this market will resolve to \"No\".\nThis market refers only to the outcome within the first 90 minutes of regular play plus stoppage time."
+   },
+   {
+    "question": "Will BV Borussia 09 Dortmund win on 2026-11-24?",
+    "conditionId": "0xec0d",
+    "outcomes": "[\"Yes\", \"No\"]",
+    "clobTokenIds": "[\"91686507074001909497427381029925946917695675321797952244832694106485664379572\", \"91277229552559666326959523916410148862702996709116398648408302513302995051543\"]",
+    "sportsMarketType": "moneyline",
+    "gameStartTime": "2026-11-24 20:00:00+00",
+    "description": "In the upcoming UEFA Champions League game between Arsenal FC and BV Borussia 09 Dortmund, originally scheduled for Tuesday, November 24, 2026 at 3:00 PM ET:\nIf BV Borussia 09 Dortmund wins, this market will resolve to \"Yes\".\nOtherwise, this market will resolve to \"No\".\nThis market refers only to the outcome within the first 90 minutes of regular play plus stoppage time."
+   }
+  ]
+ },
+ "ucl_derivative": {
+  "title": "Arsenal FC vs. BV Borussia 09 Dortmund - Exact Score",
+  "slug": "ucl-ars-bvb-2026-11-24-exact-score",
+  "active": true,
+  "closed": false,
+  "startTime": "2026-11-24T20:00:00Z",
+  "endDate": "2026-11-24T20:00:00Z",
+  "description": "In the upcoming UEFA Champions League game between Arsenal FC and BV Borussia 09 Dortmund",
+  "markets": [
+   {
+    "question": "Will Arsenal FC win on 2026-11-24?",
+    "conditionId": "0x6fe5",
+    "outcomes": "[\"Yes\", \"No\"]",
+    "clobTokenIds": "[\"48785407426510507757153118342112246219144357041577840957197752950036912721064\", \"57618757328728487225724129613008635024857069805209977624119158932000665983956\"]",
+    "sportsMarketType": "moneyline",
+    "gameStartTime": "2026-11-24 20:00:00+00",
+    "description": "In the upcoming UEFA Champions League game between Arsenal FC and BV Borussia 09 Dortmund, originally scheduled for Tuesday, November 24, 2026 at 3:00 PM ET:\nIf Arsenal FC wins, this market will resolve to \"Yes\".\nOtherwise, this market will resolve to \"No\".\nThis market refers only to the outcome within the first 90 minutes of regular play plus stoppage time."
+   },
+   {
+    "question": "Will Arsenal FC vs. BV Borussia 09 Dortmund end in a draw?",
+    "conditionId": "0x8a07",
+    "outcomes": "[\"Yes\", \"No\"]",
+    "clobTokenIds": "[\"20688966511180342262055611951364480251804278240914390942808979995947878169161\", \"23654957472345749447034407588722684124494442302399888839271406143943918825840\"]",
+    "sportsMarketType": "moneyline",
+    "gameStartTime": "2026-11-24 20:00:00+00",
+    "description": "In the upcoming UEFA Champions League game between Arsenal FC and BV Borussia 09 Dortmund, originally scheduled for Tuesday, November 24, 2026 at 3:00 PM ET:\nIf the game ends in a draw, this market will resolve to \"Yes\".\nOtherwise, this market will resolve to \"No\".\nThis market refers only to the outcome within the first 90 minutes of regular play plus stoppage time."
+   },
+   {
+    "question": "Will BV Borussia 09 Dortmund win on 2026-11-24?",
+    "conditionId": "0xec0d",
+    "outcomes": "[\"Yes\", \"No\"]",
+    "clobTokenIds": "[\"91686507074001909497427381029925946917695675321797952244832694106485664379572\", \"91277229552559666326959523916410148862702996709116398648408302513302995051543\"]",
+    "sportsMarketType": "moneyline",
+    "gameStartTime": "2026-11-24 20:00:00+00",
+    "description": "In the upcoming UEFA Champions League game between Arsenal FC and BV Borussia 09 Dortmund, originally scheduled for Tuesday, November 24, 2026 at 3:00 PM ET:\nIf BV Borussia 09 Dortmund wins, this market will resolve to \"Yes\".\nOtherwise, this market will resolve to \"No\".\nThis market refers only to the outcome within the first 90 minutes of regular play plus stoppage time."
+   }
+  ]
+ },
+ "nba": {
+  "title": "Heat vs. 76ers",
+  "slug": "nba-mia-phi-2026-11-25",
+  "active": true,
+  "closed": false,
+  "startTime": "2026-11-25T22:00:00Z",
+  "endDate": "2026-11-25T22:00:00Z",
+  "description": "",
+  "markets": [
+   {
+    "question": "Heat vs. 76ers",
+    "conditionId": "0x1111",
+    "outcomes": "[\"Heat\", \"76ers\"]",
+    "clobTokenIds": "[\"111\", \"222\"]",
+    "sportsMarketType": "moneyline",
+    "gameStartTime": "2026-11-25 22:00:00+00",
+    "description": "In the upcoming NBA game: if the Miami Heat win, the market resolves to Heat. This market includes any overtime periods."
+   },
+   {
+    "question": "Spread: 76ers (-3.5)",
+    "conditionId": "0x2222",
+    "outcomes": "[\"76ers\", \"Heat\"]",
+    "clobTokenIds": "[\"333\", \"444\"]",
+    "sportsMarketType": "spreads",
+    "gameStartTime": "2026-11-25 22:00:00+00",
+    "description": "spread"
+   }
+  ]
+ },
+ "nba_closed_2023": {
+  "title": "NBA: 2023-04-06",
+  "slug": "nba-dailies-2023-04-06",
+  "active": true,
+  "closed": true,
+  "markets": [
+   {
+    "question": "NBA: Philadelphia 76ers vs. Miami Heat 2023-04-06",
+    "conditionId": "0x0273",
+    "outcomes": "[\"76ers\", \"Heat\"]",
+    "clobTokenIds": "[\"555\", \"666\"]",
+    "sportsMarketType": null,
+    "gameStartTime": "2023-04-06 23:30:00+00",
+    "description": "old"
+   }
+  ]
+ },
+ "ucl_champion": {
+  "title": "UEFA Champions League: 2027 Champion",
+  "slug": "uefa-champions-league-2027-champion",
+  "active": true,
+  "closed": false,
+  "endDate": "2027-06-20T03:59:00Z",
+  "description": "This market will resolve according to the team that wins the 2026-27 UEFA Champions League Championship.",
+  "markets": [
+   {
+    "question": "Will Arsenal win the 2026-27 UEFA Champions League Championship?",
+    "conditionId": "0x7346",
+    "outcomes": "[\"Yes\", \"No\"]",
+    "clobTokenIds": "[\"43901405785924750229793277147927116360564476290216401880491136719593445150601\", \"84022831948713876075151324599422242901700933249393559376545595298854798308565\"]",
+    "description": "wins the 2026-27 UEFA Champions League"
+   },
+   {
+    "question": "Will Liverpool win the 2026-27 UEFA Champions League Championship?",
+    "conditionId": "0x67a6",
+    "outcomes": "[\"Yes\", \"No\"]",
+    "clobTokenIds": "[\"8193681255314680130463293913377900791697724543108576171134288378615851319182\", \"104558363662964226682768449516244862625691134111437523091042446417249213059024\"]",
+    "description": ""
+   }
+  ]
+ },
+ "ucl_phase_winner": {
+  "title": "UEFA Champions League: League Phase Winner",
+  "slug": "ucl-league-phase-winner",
+  "active": true,
+  "closed": false,
+  "endDate": "2027-06-20T03:59:00Z",
+  "description": "This market will resolve according to the team that wins the 2026-27 UEFA Champions League Championship.",
+  "markets": [
+   {
+    "question": "Will Arsenal win the 2026-27 UEFA Champions League Championship?",
+    "conditionId": "0x7346",
+    "outcomes": "[\"Yes\", \"No\"]",
+    "clobTokenIds": "[\"43901405785924750229793277147927116360564476290216401880491136719593445150601\", \"84022831948713876075151324599422242901700933249393559376545595298854798308565\"]",
+    "description": "wins the 2026-27 UEFA Champions League"
+   },
+   {
+    "question": "Will Liverpool win the 2026-27 UEFA Champions League Championship?",
+    "conditionId": "0x67a6",
+    "outcomes": "[\"Yes\", \"No\"]",
+    "clobTokenIds": "[\"8193681255314680130463293913377900791697724543108576171134288378615851319182\", \"104558363662964226682768449516244862625691134111437523091042446417249213059024\"]",
+    "description": ""
+   }
+  ]
+ }
+}
