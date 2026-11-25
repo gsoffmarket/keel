@@ -1,4 +1,4 @@
-"""keel command line: read-only recorder commands. Nothing here signs or sends orders."""
+"""keel command line: read-only recorder and research commands. Nothing here signs or sends orders."""
 from __future__ import annotations
 
 import argparse
@@ -251,8 +251,126 @@ def cmd_health(args) -> int:
     return EXIT_OK
 
 
+# ---------------- research (M1)
+
+def _days(arg: Optional[str]) -> Optional[List[str]]:
+    return [d.strip() for d in arg.split(",") if d.strip()] if arg else None
+
+
+def _registry(cfg):
+    from keel.research.registry import Registry
+
+    return Registry(Path(cfg.data_root) / "research" / "registry.sqlite")
+
+
+def cmd_research(args) -> int:
+    from keel.research import snapshot as S
+
+    cfg = _cfg(args)
+    root = Path(cfg.data_root)
+    a = args.action
+    try:
+        if a == "census":
+            from keel.research import census as C
+
+            if args.verify:
+                rep = json.loads(Path(args.verify).read_text())
+                snap = S.verify(root, rep["snapshot"])
+                new, _ = C.build(snap, rep["venues"])
+                same = C.canonical(new) == Path(args.verify).read_bytes()
+                print(("Reproduced byte for byte: " if same else "DIFFERENT output from the same snapshot: ") + args.verify)
+                return EXIT_OK if same else EXIT_REFUSED
+            snap = S.build(root, _days(args.days))
+            rep, eps = C.build(snap, args.venues.split(","))
+            jp, mp, ep = C.write(rep, eps, Path(args.out) if args.out else root / "reports" / "census")
+            print(f"Census of {len(snap.days)} day(s), snapshot {snap.id[:12]}, status {rep['status']}.")
+            for x in rep["limits"]:
+                print(f"  limit: {x}")
+            print(f"Report:   {mp}\nData:     {jp}\nEpisodes: {ep}")
+            return EXIT_OK
+        if a == "makers":
+            from keel.research import makers as K
+
+            snap = S.build(root, _days(args.days))
+            rep = K.build(snap, args.venues.split(","), args.min_fills, args.maker_fee_bps, args.taker_fee_bps, args.settlement_fee_bps)
+            out = Path(args.out) if args.out else root / "reports" / "census"
+            out.mkdir(parents=True, exist_ok=True)
+            stem = out / f"makers-{snap.id[:12]}"
+            stem.with_suffix(".json").write_text(json.dumps(rep, sort_keys=True, indent=1) + "\n")
+            stem.with_suffix(".md").write_text(K.render_markdown(rep))
+            for seg, x in rep["segments"].items():
+                print(f"{seg:<14} makers {x['makers']:>4}  P&L ex-rewards {x['pnl_ex_rewards_usdc']:>12}  upper95 {x['upper95_usdc']}  {x['verdict']}")
+            print(f"Report: {stem.with_suffix('.md')}")
+            return EXIT_OK
+        if a == "validate":
+            from keel.research import validate as V
+
+            snap = S.build(root, _days(args.days))
+            rep = V.run(snap)
+            out = Path(args.out) if args.out else root / "reports" / "validation"
+            out.mkdir(parents=True, exist_ok=True)
+            stem = out / f"validation-{snap.id[:12]}"
+            stem.with_suffix(".json").write_text(json.dumps(rep, sort_keys=True, indent=1, default=str) + "\n")
+            stem.with_suffix(".md").write_text(V.render_markdown(rep))
+            for k, v in rep.items():
+                if k[0].isdigit():
+                    print(f"{ {True: 'PASS', False: 'FAIL', None: 'N/A'}[v.get('pass')]:<5} {k[2:].replace('_', ' ')}")
+            print(f"Report: {stem.with_suffix('.md')}")
+            return EXIT_OK if rep["pass"] else EXIT_REFUSED
+        if a == "mde":
+            from keel.research import mde as M
+
+            for row in M.hold_table([float(x) for x in args.per_week.split(",")], [int(x) for x in args.test_days.split(",")], args.sigma, args.k):
+                cells = "  ".join(f"{k}: {v['mde_c']}c (n={v['n']})" for k, v in row.items() if k != "clusters_per_week")
+                print(f"{row['clusters_per_week']:>6g}/week  {cells}")
+            return EXIT_OK
+        reg = _registry(cfg)
+        try:
+            if a == "register":
+                from keel.research.registry import RegistrationError
+
+                spec = json.loads(Path(args.spec).read_text())
+                try:
+                    h = reg.register(spec)
+                except RegistrationError as exc:
+                    print(f"Refused: {exc}")
+                    return EXIT_REFUSED
+                print(f"Registered {h['name']} v{h['version']} (MDE {h['mde']:.4g}, plausible edge {spec['plausible_edge']}). Spec sha256 {h['spec_sha256'][:12]}.")
+                return EXIT_OK
+            if a == "list":
+                rows = reg.list()
+                print(f"{len(rows)} hypotheses, {reg.trial_count()} trials in total.")
+                for r in rows:
+                    print(f"{r['name']} v{r['version']:<3} {r['stage']:<11} trials {r['trials']:<3} MDE {r['mde'] if r['mde'] is None else round(r['mde'], 4)}  last verdict {r['last_verdict'] or '—'}" + (f"  ({r['reason']})" if r['reason'] else ""))
+                return EXIT_OK
+            if a == "show":
+                print(json.dumps(reg.get(args.name, args.version), indent=2, default=str))
+                return EXIT_OK
+            if a == "run":
+                snap = S.build(root, _days(args.days))
+                r = reg.run(args.name, args.evaluator, snap, args.variant, args.seed, args.version)
+                print(json.dumps({"run": r["id"], "snapshot": snap.id[:12], "metrics": r["metrics"]}, indent=2, default=str))
+                return EXIT_OK
+            if a == "verdict":
+                from keel.research.registry import RegistrationError
+
+                try:
+                    v = reg.verdict(args.run_id, args.verdict, args.note or "")
+                except RegistrationError as exc:
+                    print(f"Refused: {exc}")
+                    return EXIT_REFUSED
+                print(f"Run {v['run_id']}: {v['verdict']} (evidence {v['evidence_sha256'][:12]}).")
+                return EXIT_OK
+        finally:
+            reg.close()
+    except FileNotFoundError as exc:
+        print(exc)
+        return EXIT_IO
+    return EXIT_REFUSED
+
+
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="keel", description="Keel: read-only recorder for Outcome (HIP-4). No keys, no orders.")
+    p = argparse.ArgumentParser(prog="keel", description="Keel: read-only recorder and research engine for Outcome (HIP-4). No keys, no orders.")
     p.add_argument("--version", action="version", version=f"keel {__version__}")
     p.add_argument("--config", help="path to keel.json (default: built-in defaults)")
     p.add_argument("--data", help="override the data folder")
@@ -302,6 +420,47 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--once", metavar="FILE", help="write the page to FILE once instead of serving it")
     s.set_defaults(fn=cmd_health)
 
+    r = sub.add_parser("research", help="M1 research engine: censuses, MDE, registry, runs (read-only analysis)")
+    rs = r.add_subparsers(dest="action", required=True)
+    x = rs.add_parser("census", help="S1a universe, liquidity, markout and episode census from compacted days")
+    x.add_argument("--days", help="comma-separated YYYY-MM-DD (default: every compacted day)")
+    x.add_argument("--venues", default="out")
+    x.add_argument("--out", help="output folder (default <data>/reports/census)")
+    x.add_argument("--verify", metavar="REPORT_JSON", help="recompute a report from its snapshot and compare byte for byte")
+    x = rs.add_parser("makers", help="S1b maker census (kill-only)")
+    x.add_argument("--days")
+    x.add_argument("--venues", default="out")
+    x.add_argument("--out")
+    x.add_argument("--min-fills", type=int, default=50)
+    x.add_argument("--maker-fee-bps", type=float, default=0.0)
+    x.add_argument("--taker-fee-bps", type=float, default=8.75)
+    x.add_argument("--settlement-fee-bps", type=float, default=0.0)
+    x = rs.add_parser("validate", help="check the research engine against ground truth (simulator vs real fills, accounting, planted edge, mutations, independent recomputation)")
+    x.add_argument("--days")
+    x.add_argument("--out")
+    x = rs.add_parser("mde", help="print the minimum-detectable-edge table")
+    x.add_argument("--sigma", type=float, default=50.0, help="cents per contract (50 near p = 0.5)")
+    x.add_argument("--per-week", default="25,50,100,200", help="independent clusters traded per week")
+    x.add_argument("--test-days", default="30,60,90")
+    x.add_argument("--k", type=int, default=1, help="concurrent pilots (Bonferroni)")
+    x = rs.add_parser("register", help="register a hypothesis from a JSON spec (refused if untestable)")
+    x.add_argument("spec")
+    rs.add_parser("list", help="hypotheses, stages, trial counts and verdicts")
+    x = rs.add_parser("show")
+    x.add_argument("name")
+    x.add_argument("--version", type=int)
+    x = rs.add_parser("run", help="run an evaluator for a registered hypothesis on a snapshot (counts as a trial)")
+    x.add_argument("name")
+    x.add_argument("--evaluator", required=True)
+    x.add_argument("--variant", type=int, default=0, help="which of the spec's configurations to run (index, from 0)")
+    x.add_argument("--seed", type=int, default=0)
+    x.add_argument("--days")
+    x.add_argument("--version", type=int)
+    x = rs.add_parser("verdict", help="record GO / NO-GO / REDESIGN / INSUFFICIENT for a run")
+    x.add_argument("run_id", type=int)
+    x.add_argument("verdict", choices=["GO", "NO-GO", "REDESIGN", "INSUFFICIENT"])
+    x.add_argument("--note")
+    r.set_defaults(fn=cmd_research)
     return p
 
 
