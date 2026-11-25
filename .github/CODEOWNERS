@@ -1,0 +1,5 @@
+# Every change is reviewed by the maintainer. Strategy, risk and execution logic always
+# need the maintainer's approval (see CONTRIBUTING.md).
+*                       @gsoffmarket
+/src/keel/research/     @gsoffmarket
+/.github/               @gsoffmarket
