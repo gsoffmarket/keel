@@ -1,0 +1,33 @@
+# Keel read-only recorder. Install: see deploy/README.md
+[Unit]
+Description=Keel read-only market-data recorder
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=keel
+Group=keel
+WorkingDirectory=/opt/keel
+Environment=PYTHONPATH=/opt/keel/src
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 -m keel --config /opt/keel/keel.json record
+# The recorder exits 3 when it has received no stream data for stall_exit_after and 4 when the
+# disk is nearly full; both are restarts or alerts for the supervisor, never silent hangs.
+Restart=always
+RestartSec=10
+StartLimitIntervalSec=600
+StartLimitBurst=20
+# Hardening: read-only system, writes only to the data folder, no privilege gain.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/opt/keel/data
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+MemoryMax=1G
+
+[Install]
+WantedBy=multi-user.target

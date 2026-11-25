@@ -1,0 +1,9 @@
+[Unit]
+Description=Run the Keel daily job at 00:15 UTC
+
+[Timer]
+OnCalendar=*-*-* 00:15:00 UTC
+Persistent=true
+
+[Install]
+WantedBy=timers.target
