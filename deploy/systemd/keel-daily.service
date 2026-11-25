@@ -1,0 +1,14 @@
+[Unit]
+Description=Keel daily compaction, quality report and retention
+
+[Service]
+Type=oneshot
+User=keel
+Group=keel
+WorkingDirectory=/opt/keel
+Environment=PYTHONPATH=/opt/keel/src
+ExecStart=/usr/bin/python3 -m keel --config /opt/keel/keel.json daily
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/keel/data
