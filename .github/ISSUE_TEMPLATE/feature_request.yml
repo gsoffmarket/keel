@@ -1,0 +1,25 @@
+name: Feature or research proposal
+description: Propose a capability, a data source or a research hypothesis.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or question
+      description: What can't be done or measured today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: For a strategy hypothesis, include the mechanism (who pays and why it persists) and how it would be tested.
+    validations:
+      required: true
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: This needs no private keys, live orders or paid services
+        - label: This changes strategy, risk or execution logic (needs maintainer approval)

@@ -1,0 +1,39 @@
+name: Bug report
+description: Something in the recorder, the reports or the research engine is wrong.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you ran, what you expected and what you got.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce
+      description: Commands, config (remove anything private) and the snapshot id if a research report is involved.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Relevant output
+      description: "`keel doctor`, `keel status` or the report section. Never paste keys or addresses you consider private."
+      render: text
+  - type: input
+    id: version
+    attributes:
+      label: Keel version and Python version
+      placeholder: "keel 0.1.0, Python 3.12, macOS 15"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [recorder, references and matching, quality reports, compaction and retention, health page, research engine, docs, other]
+    validations:
+      required: true
