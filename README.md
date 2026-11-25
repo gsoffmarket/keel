@@ -1,100 +1,211 @@
 # Keel
 
+**Open-source, self-hosted quantitative research and trading system for Outcome (HIP-4) prediction markets on Hyperliquid.**
+
 [![CI](https://github.com/gsoffmarket/keel/actions/workflows/ci.yml/badge.svg)](https://github.com/gsoffmarket/keel/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 ![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)
-![Dependencies: none](https://img.shields.io/badge/runtime%20dependencies-none-brightgreen.svg)
+![Runtime dependencies: none](https://img.shields.io/badge/runtime%20dependencies-none-brightgreen.svg)
 
-Keel is an open-source, self-hosted, research-first quantitative system for [Outcome](https://outcome.xyz), the HIP-4 prediction-market platform on Hyperliquid. The full product covers market intelligence, fair value, validation, execution, risk and capital allocation. It is built in milestones, each accepted on measured evidence rather than on passing tests alone.
+Keel records Outcome's order books, trades and settlements together with matched Polymarket prices, turns them into verified research datasets, and measures which trading strategies can actually make money after fees, latency and competition, before any capital is put at risk.
 
-**Read-only by construction.** This release holds no keys, signs nothing and never calls Hyperliquid's exchange endpoint. Live trading stays behind a ten-condition gate.
+## What Keel is
 
-## Status
+Keel is a research-first quant system for [Outcome](https://outcome.xyz), the HIP-4 prediction-market platform built on Hyperliquid. It runs on your own machine or server and covers the full path from market data to evidence:
+
+- a **market-data recorder** for every live Outcome market: order books at block resolution, trades with both counterparties, official settlements, and live Polymarket reference prices for the same events;
+- a **data-quality layer** that measures coverage, freshness and correctness of everything recorded;
+- a **research engine** that sizes the opportunity (market census), measures existing market makers' profitability, computes the smallest edge each strategy could reliably detect, and replays strategies through a HyperCore-accurate simulator;
+- a **research registry** that pre-registers every hypothesis and records every test run, so results can't be cherry-picked.
+
+The full system adds fair-value models, an opportunity scanner, paper trading, a hardened signer and a dashboard, delivered milestone by milestone.
+
+## The problem it solves
+
+Prediction markets on Hyperliquid are new, fast and thin. Traders and builders face three problems:
+
+1. **No research-grade data.** Outcome's public feeds are live-only. Without a recorder there is no history of books, trades or settlements to study, and no way to know whether a dataset has gaps.
+2. **No way to tell a real edge from noise.** A price gap between Outcome and Polymarket looks like free money until fees, latency, queue position and stale quotes are accounted for. Most backtests ignore these and overstate results.
+3. **No discipline around testing.** Trying many ideas on the same data and keeping the best one produces false discoveries.
+
+Keel solves these with a verified recorder, an exchange-accurate simulator checked against real fills, statistical power calculations before any test starts, and a registry that counts every trial.
+
+## How it works
+
+```mermaid
+flowchart LR
+    A[Hyperliquid<br/>books, trades, settlements] --> R[Recorder]
+    B[Polymarket<br/>matched live books] --> R
+    R --> Q[Quality report<br/>coverage, freshness, audits]
+    R --> C[Daily compaction<br/>verified tables + SHA-256 manifests]
+    C --> S[Snapshot<br/>pinned, reproducible input]
+    S --> N[Census<br/>universe, liquidity, episodes, MDE]
+    S --> M[Maker census<br/>incumbent P&L]
+    S --> X[Simulator<br/>HyperCore replay]
+    N & M & X --> G[Research registry<br/>pre-registered hypotheses, every trial counted]
+    G --> V[Paper trading → gated pilot]
+```
+
+1. **Record.** The recorder streams Outcome books (per block for active sports and price markets), trades, mids and perp marks, polls the market list, captures official settlement results, and subscribes to the matching Polymarket books. Raw messages are stored verbatim, append-only.
+2. **Verify.** Every session produces a quality report: minute-level coverage, REST audits of the WebSocket books, mirror checks, settlement capture and reference freshness. Stale reference prices are flagged and can never feed research.
+3. **Compact.** Each day becomes research tables (Parquet or gzip JSON lines) with row counts and SHA-256 hashes in a manifest that is checked before use.
+4. **Research.** Analyses run on immutable snapshots. The census and maker census describe the market; the MDE table says which edges are detectable; the simulator replays strategies with real latency, fees and queue rules.
+5. **Decide.** Hypotheses are registered with their thresholds fixed in advance. Simulation can reject a strategy; only prospective paper trading and a gated pilot can promote one.
+
+## Key features
+
+| Area | Capability |
+| --- | --- |
+| Recording | Outcome-only by default; per-block books for active sports and price markets with automatic activity tiering; trades with buyer and seller; official settlements; auto-restart, reconnect with backoff, stall detection |
+| Reference prices | Automatic Outcome↔Polymarket event matching with confidence scores; live Polymarket books with exchange and receipt timestamps, feed age and change age |
+| Data quality | Coverage, audits, mirror checks, settlement capture, freshness, suspect-mapping detection, per-source storage accounting, daily reports |
+| Operations | Disk budget and retention that only delete verified data, health pings, a read-only Health page, host benchmark, systemd and launchd units |
+| Research | Reproducible snapshots, S1a census, S1b maker census, minimum-detectable-edge maths, HyperCore replay simulator, evaluators, research registry |
+| Validation | `keel research validate` checks the engine against ground truth on real data |
+| Engineering | Pure Python standard library at runtime, fixed-point money and prices, deterministic byte-identical reports, CI on Python 3.9–3.13 |
+
+## Verified results
+
+Measured on recorded Outcome mainnet data with `keel research validate`:
+
+- **Simulator accuracy:** replaying real aggressive orders against the book recorded just before them, the simulator reproduced the exchange's fill size and price for **95.8%** of orders that met a book under one second old (89.6% across all recorded orders).
+- **Accounting:** profit and loss across 525 trading addresses and 24,879 trades summed to minus total fees with a residual of **$0.000000**.
+- **Edge detection:** a planted 1.855¢ edge was measured as **1.849¢**; a market with no edge measured −0.144¢, the cost of the spread plus fees.
+- **Reproducibility:** the same snapshot gives byte-identical census reports and simulator replays.
+
+## How it is built
+
+- **Milestones gated by evidence.** Each milestone is accepted on measured results from real data, not on passing tests alone.
+- **Read-only first.** Recording and research need no keys and place no orders; trading components arrive later behind a ten-condition gate and explicit owner approval.
+- **Reproducible by construction.** Raw data is never edited, tables are hashed, analyses are pinned to snapshots, and reports are deterministic.
+- **Statistics before strategies.** Every hypothesis states its mechanism, primary statistic, budget and minimum detectable edge before it runs.
+- **Tested against reality.** Unit and end-to-end tests run the real recorder against local stand-ins fed with captured mainnet payloads; validation compares outputs with real exchange fills.
 
 | Milestone | Scope | State |
 | --- | --- | --- |
-| M0 Recorder | Outcome books, trades, settlements and live Polymarket references; quality reports, compaction, retention, disk budget, health page | Built; awaiting the 7-day always-on acceptance run |
-| M1 Census + simulator | Snapshots, S1a/S1b censuses, minimum-detectable-edge table, HyperCore replay simulator, research registry, ground-truth validation | Built; censuses need 7 recorded days for final numbers |
-| M2 Fair value, scanner, paper engine | | Next |
-
-## What it records
-
-| Stream | Source | Cadence |
-| --- | --- | --- |
-| Universe, templates, questions | `outcomeMeta` (REST) | 60 s |
-| Order books, side 0 of every live Outcome market (side 1 is the mirror) | WebSocket `l2Book`; per-block (`fast`) for active sports and price markets, ~12 s otherwise | every push |
-| Trades with buyer and seller addresses | WebSocket `trades` | every push |
-| Outcome mids and perp mids | WebSocket `allMids` | every push |
-| Perp marks (price markets settle on marks) | `metaAndAssetCtxs` (REST) | 60 s |
-| Book and mirror audits | `l2Book`, `recentTrades` (REST), rotating subset | 60 s / 15 min |
-| Matched Polymarket books (reference prices) | Polymarket CLOB WebSocket, with REST audits | every push |
-| Broad reference context | Polymarket and Kalshi public APIs | hourly |
-| Official settlements | `settledOutcome` (REST) | on removal |
-
-Everything is written verbatim, append-only, to gzip JSON lines, then compacted daily into research tables (Parquet with `pyarrow`, gzip JSON lines without it). Activity tiering keeps quiet markets on the slower stream, and a disk budget, retention and per-source accounting keep storage bounded (expected 0.3–0.6 GB a day, measured per source in every report).
+| M0 | Recorder, quality reports, compaction, operations, Health page | ✅ Built |
+| M1 | Snapshots, censuses, MDE, simulator, registry, validation | ✅ Built |
+| M2 | Fair value, opportunity scanner, paper-trading engine | Next |
+| M3 | Hardened signer and conformance tests | Planned |
+| M4 | Dashboard | Planned |
+| M5–M6 | Prospective paper trading, gated pilot | Planned |
 
 ## Quick start
 
-Needs Python 3.9 or newer and nothing else.
+Requires Python 3.9 or newer. No other dependencies.
 
 ```bash
-python3 -m pip install -e .        # optional; or run with PYTHONPATH=src
+git clone https://github.com/gsoffmarket/keel.git
+cd keel
+python3 -m venv .venv && . .venv/bin/activate
+pip install -e ".[dev]"            # add ,parquet for Parquet tables
+
 keel init                          # writes keel.json and creates data/
-keel doctor                        # Python, disk, clock, Hyperliquid and reference connectivity
-keel record                        # runs until Ctrl-C; or: keel record --duration 30m
-keel status                        # from another terminal
-keel health                        # read-only Health page on 127.0.0.1:8787
+keel doctor                        # checks Python, disk, clock and connectivity
+keel record --duration 30m         # records live Outcome and Polymarket data
+```
+
+While it records, in another terminal:
+
+```bash
+keel status                        # live counters
+keel health                        # Health page at http://127.0.0.1:8787
+```
+
+## Reproduce the results
+
+**1. Run the test suite (no network needed).**
+
+```bash
+python -m pytest
+```
+
+This runs the recorder end to end against local exchange stand-ins fed with real captured payloads, and checks the research engine on constructed markets with known answers, including planted-edge recovery.
+
+**2. Record real data.** Record for at least 30 minutes; for research-grade numbers, record continuously for 7 days on an always-on host (see [Run it anywhere](#run-it-anywhere)).
+
+```bash
+keel record --duration 30m
 keel quality                       # data-quality report in data/reports/
-keel compact --all                 # daily research tables in data/tables/
 ```
 
-Research on compacted days:
+**3. Build the research tables and run the analyses.**
 
 ```bash
-keel research census               # S1a: universe, liquidity, markouts, reference-gap episodes, MDE table
-keel research makers               # S1b: incumbent makers' P&L ex-rewards, kill-only
-keel research validate             # checks the engine against ground truth
+keel compact --all                 # verified daily tables in data/tables/
+keel research census               # reports/census/census-<snapshot>.md
+keel research makers               # reports/census/makers-<snapshot>.md
+keel research validate             # reports/validation/validation-<snapshot>.md
+```
+
+**4. Verify a report reproduces byte for byte.**
+
+```bash
+keel research census --verify data/reports/census/census-<snapshot>.json
+```
+
+**5. Register and test a hypothesis.**
+
+```bash
 keel research mde --per-week 50,100 --test-days 45,90
+keel research register o-s7-l.json            # refused if the edge is undetectable
+keel research run O-S7-L --evaluator reference_gap_taker --seed 1
+keel research list
 ```
 
-If `keel doctor` reports a certificate error on macOS with a python.org build of Python, run `/Applications/Python 3.x/Install Certificates.command` once. For 24/7 recording see [docs/recorder.md](docs/recorder.md) and [deploy/](deploy/) (systemd on Linux, launchd on macOS).
+See [docs/research.md](docs/research.md) for the registration spec format and evaluator settings.
 
-## Tests
+## Run it anywhere
 
-```bash
-python3 -m pip install -e ".[dev]"
-python3 -m pytest
-```
+| Where | How |
+| --- | --- |
+| Laptop (macOS or Linux) | `keel record`; on macOS, `deploy/launchd/` keeps it running |
+| Linux server or VPS | `deploy/systemd/` units for the recorder and the daily job; benchmark the host first with `keel bench --duration 30m` |
+| Remote monitoring | `ssh -L 8787:127.0.0.1:8787 user@server`, then open the Health page locally |
 
-The tests run the real recorder against local stand-ins for Hyperliquid's info API and WebSocket and Polymarket's market channel, fed with real mainnet payloads captured read-only (`tests/fixtures/`). Research code is tested on constructed markets with known answers. `keel research validate` goes further on real recordings: it replays real orders through the simulator and compares the fills with what the exchange printed, checks that the accounting conserves money, and recovers a planted edge.
+Full instructions: [deploy/README.md](deploy/README.md) and [docs/recorder.md](docs/recorder.md).
 
-## Layout
+## Command reference
+
+| Command | Purpose |
+| --- | --- |
+| `keel init` / `keel doctor` | Create config; check the environment and connectivity |
+| `keel record` / `keel status` / `keel health` | Record; live status; Health page |
+| `keel quality` / `keel compact` | Data-quality report; daily research tables |
+| `keel retain` / `keel daily` / `keel bench` | Retention; daily job; host benchmark |
+| `keel research census` / `makers` / `mde` | Market census; maker census; detectable-edge table |
+| `keel research validate` | Ground-truth validation of the research engine |
+| `keel research register` / `run` / `verdict` / `list` / `show` | Research registry |
+
+## Project structure
 
 ```
 src/keel/
   hl/          Hyperliquid: coin encoding, outcomeMeta parsing, info client, WebSocket client
-  refs/        reference feeds: Polymarket matching, live books, freshness, alignment
-  recorder/    recorder process and crash-tolerant raw storage
+  refs/        Polymarket matching, live reference books, freshness, alignment
+  recorder/    recorder process and append-only raw storage
   research/    snapshots, censuses, MDE, simulator, registry, evaluators, validation
   compact.py   daily research tables        quality.py   data-quality report
-  ops.py       retention, disk budget, daily job, bench        health.py   Health page
+  ops.py       retention, disk budget, daily job, benchmark        health.py   Health page
 deploy/        systemd and launchd units
-docs/          operator and research documentation
+docs/          operator and research guides
 tests/         unit, end-to-end and safety-invariant tests
 ```
 
 ## Documentation
 
-- [docs/recorder.md](docs/recorder.md): operating the recorder
-- [docs/data-quality.md](docs/data-quality.md): every metric in the quality report, defined
-- [docs/references.md](docs/references.md): reference feeds, market matching and the freshness rule
-- [docs/research.md](docs/research.md): snapshots, censuses, MDE, simulator, registry, evaluators and validation
-- [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), [CHANGELOG.md](CHANGELOG.md)
+- [Recorder guide](docs/recorder.md): configuration, operation, storage and resource use
+- [Data quality](docs/data-quality.md): every metric in the quality report
+- [Reference feeds](docs/references.md): Polymarket matching and the freshness rule
+- [Research engine](docs/research.md): snapshots, censuses, MDE, simulator, registry, evaluators and validation
+- [Deployment](deploy/README.md)
 
-## Safety
+## Contributing and security
 
-This release cannot trade. There is no signing code, no key handling and no exchange client in the package, and `tests/test_safety_invariants.py` fails the build if any appear. Wallet creation, paid services, conformance trades and live capital each need the owner's separate approval. Nothing in this repository is investment advice, and no result in it is a claim of profitability.
+Contributions are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md) and the [code of conduct](CODE_OF_CONDUCT.md). Report security issues privately as described in [SECURITY.md](SECURITY.md). Release notes are in [CHANGELOG.md](CHANGELOG.md).
+
+Keel is research software; nothing in this repository is investment advice.
 
 ## License
 
-[Apache License 2.0](LICENSE).
+[Apache License 2.0](LICENSE)
