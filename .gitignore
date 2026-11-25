@@ -1,0 +1,15 @@
+data/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+keel.json
+.DS_Store
+.venv/
+# Planning material stays local and is never pushed: the PRD, research, red-team
+# reviews, milestone plans and reports.
+*.docx
+*.pdf
+plans/
+docs/planning/
+docs/milestone-*.md
